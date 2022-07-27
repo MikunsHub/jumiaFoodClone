@@ -58,7 +58,7 @@ def get_suitable_drivers(vendor_adrrs, driver_loca):
         origins=[vendor_adrrs],
         destinations=driver_coordinates
     )
-    # print(geocode_result)
+    
     distance = []
     for i in geocode_result["rows"][0]["elements"]:
         distance.append(float(i["distance"]["text"].split()[0]))
