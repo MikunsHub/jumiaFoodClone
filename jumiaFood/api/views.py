@@ -209,7 +209,7 @@ class DeliveryAcceptView(generics.UpdateAPIView):
 
 class DeliveryRejectView(generics.UpdateAPIView):
     """
-        Driver accepts order
+        Driver rejects order
     """
     serializer_class = DeliveryAcceptSerializer
     queryset = Delivery_driver_match.objects.all()

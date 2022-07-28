@@ -1,9 +1,9 @@
 from django.db import models
 from rest_framework.response import Response
 from .models import Delivery, Order, Vendor, Driver,Delivery_driver_match
-from .serializers import DeliverySerializer,DeliveryDriverMatchSerializer
+from .serializers import DeliveryDriverMatchSerializer
 import googlemaps
-from collections import defaultdict
+
 
 gmaps = googlemaps.Client(key='AIzaSyB7HD_pMGWXkDZDk8KxFdGfFglyDcQ3Fyk')
 
@@ -33,8 +33,6 @@ def find_drivers():
         drivers_data.append(data)
 
     return drivers_data
-
-# [{'id': 3, 'coordinates': '7.39213,3.839928'}, {'id': 6, 'coordinates': '7.450773,3.951613'}, {'id': 7, 'coordinates': '7.338137,3.877183'}, {'id': 8, 'coordinates': '7.391116,3.974132'}]
 
 
 def get_suitable_drivers(vendor_adrrs, driver_loca):
@@ -127,6 +125,7 @@ def update_order_status(delivery_id,status):
     order_instance = Order.objects.get(id=order_id)
     order_instance.status = status
     order_instance.save()
+
 
 def update_driver_action(delivery,query_key,driver_action):
     

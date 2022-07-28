@@ -118,32 +118,16 @@ class DriverStatusSerializer(serializers.ModelSerializer):
             "is_available",
         ]
 
-# class DeliveryDriversRetrieveSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Delivery_drivers
-#         fields = ["driver"]
 
 class DeliverySerializer(serializers.ModelSerializer):
-    # drivers = DeliveryDriversRetrieveSerializer(many=True,
-    #     source='delivery_drivers_set')
+
     class Meta:
         model = Delivery
         fields = [
             "id",
             "order",
             "delivery_status",
-            # "drivers"
         ]
-    # def create(self, validated_data):
-
-    #     drivers_data = validated_data.pop('delivery_drivers_set')
-    #     delivery = Delivery.objects.create(**validated_data)
-
-    #     for driver in drivers_data:
-    #         delivery.delivery_drivers_set.create(**driver)
-    #     print(delivery.id)
-    #     return delivery
 
 class DeliveryDriverMatchSerializer(serializers.ModelSerializer):
 
