@@ -3,11 +3,12 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
 from .models import *
 from .serializers import *
 from .permissions import CustomerViewOnly
-from .utils import create_delivery, update_order_status, order_complete_status
+from .utils import create_delivery, update_order_status, order_complete_status,update_driver_action
 
 
 class CountryCreateListApiView(generics.ListCreateAPIView):
@@ -93,6 +94,10 @@ class OrderCreateListApiView(generics.ListCreateAPIView):
         if serializer.is_valid():
             serializer.save(customer=user, total_amount=total_amount)
             print(serializer.data)
+
+            #alert drivers that they have a delivery to make
+            #you can put this delivery in a try catch to prevent,
+            # untraceable errors
             create_delivery(
                 order_id=serializer.data["id"],
                 item=list(serializer.data['item'][1].items())
@@ -157,34 +162,80 @@ class DeliveryLocationCreateView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
 
-class DeliveryRetrieveView(generics.ListCreateAPIView):
+class DeliveryRetrieveView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
+    lookup_field = 'driver'
 
-    serializer_class = DeliverySerializer
+    
+    serializer_class = DeliveryDriverMatchSerializer
 
-    def get(self, request):
-        delivery = Delivery.objects.filter(delivery_status="pending")
+    def get(self, request,driver):
+        delivery = Delivery_driver_match.objects.filter(driver=driver,driver_action="pending")
         serializer = self.serializer_class(instance=delivery, many=True)
         return Response(data=serializer.data)
 
 
-class DeliveryAcceptCreateView(generics.ListCreateAPIView):
+class DeliveryAcceptView(generics.UpdateAPIView):
     """
         Driver accepts order
     """
     serializer_class = DeliveryAcceptSerializer
-    queryset = Delivery_accept.objects.all()
+    queryset = Delivery_driver_match.objects.all()
+    lookup_field = 'pk' #driver match id
+    
+    def update(self, request, *args, **kwargs):
+        data = request.data
+        if Delivery_driver_match.objects.filter(delivery=data['delivery'],driver_action="accept").exists():
+            return Response({"message": "order has been taken"},status=status.HTTP_403_FORBIDDEN)
+        else:
+            instance = self.get_object()
+            
+            serializer = self.get_serializer(
+                instance, data = request.data, partial=True)
+            
+            if serializer.is_valid():
 
-    def post(self, request):
-        serializer = DeliveryAcceptSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        print(serializer.data)
-        data = serializer.data
-        update_order_status(data['delivery'])
+                serializer.save()
+                data = serializer.data
 
-        return Response(serializer.data)
+                #changes order state as driver accepts to take order
+                update_order_status(data['delivery'],"in_transit")
+                update_driver_action(data['delivery'],"pending","rejected")
 
+                return Response({"message": "driver has accepted order"})
+
+            else:
+                return Response({"message": "delivery status change failed"})
+
+class DeliveryRejectView(generics.UpdateAPIView):
+    """
+        Driver accepts order
+    """
+    serializer_class = DeliveryAcceptSerializer
+    queryset = Delivery_driver_match.objects.all()
+    lookup_field = 'pk' #driver match id
+    
+    def update(self, request, *args, **kwargs):
+        
+        instance = self.get_object()
+        
+        serializer = self.get_serializer(
+            instance, data = request.data, partial=True)
+
+        
+        if serializer.is_valid():
+
+            serializer.save()
+            data = serializer.data
+
+            #reverts the order to the state at creation
+            update_order_status(data['delivery'],"pending") 
+            update_driver_action(data['delivery'],"rejected","pending")
+
+            return Response({"message": "driver has rejected order"})
+
+        else:
+            return Response({"message": "delivery status change failed"})
 
 # another endpoint for the driver to show that they have completed
 # the order
@@ -213,7 +264,6 @@ class OrderCompleteApiView(generics.UpdateAPIView):
             return Response({"message": "delivery did not update"})
 
 # update driver's location
-
 
 class DriverLocationApiView(generics.UpdateAPIView):
 

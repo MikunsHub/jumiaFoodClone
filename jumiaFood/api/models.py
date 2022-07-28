@@ -104,12 +104,9 @@ class Delivery(models.Model):
     delivery_time = models.DateTimeField(auto_now_add=True)
     delivery_status = models.CharField(
         max_length=30, choices=deliveryOrderChoices, default=deliveryOrderChoices[0][0])
-    drivers = models.ManyToManyField(Driver, through="Delivery_drivers")
-
-
-class Delivery_drivers(models.Model):
-    delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE)
-    driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"Order:{self.order.id} Deliver: {self.pk}" 
 
 
 driverOrderChoices = (
@@ -123,7 +120,10 @@ class Delivery_accept(models.Model):
     delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE)
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
     driver_status = models.CharField(
-        max_length=30, choices=driverOrderChoices, default=driverOrderChoices[0][0])
+            max_length=30, 
+            choices=driverOrderChoices,
+            default=driverOrderChoices[0][0]
+        )
 
     def __str__(self):
         return f"{self.driver.user.email}"
@@ -133,3 +133,25 @@ class Delivery_location(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     address = models.CharField(max_length=200)
     date_added = models.DateField(auto_now_add=True)
+
+deliverDriverActionChoices = (
+    ("pending", "pending"),
+    ("accept", "accept"),
+    ("reject", "reject")
+)
+
+class Delivery_driver_match(models.Model):
+    delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE)
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
+    driver_action = models.CharField(
+            max_length=30, 
+            choices=deliverDriverActionChoices,
+            default=deliverDriverActionChoices[0][0]
+        )
+    time_added = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.pk} action:{self.driver_action}:{self.driver.user.email}({self.driver.user.id}) --> {self.delivery.order.customer.email} order:{self.delivery.order.pk}" #customer
+
+

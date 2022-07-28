@@ -1,7 +1,7 @@
 from django.db import models
 from rest_framework.response import Response
-from .models import Delivery, Order, Vendor, Driver
-from .serializers import DeliverySerializer
+from .models import Delivery, Order, Vendor, Driver,Delivery_driver_match
+from .serializers import DeliverySerializer,DeliveryDriverMatchSerializer
 import googlemaps
 from collections import defaultdict
 
@@ -81,8 +81,10 @@ def get_suitable_drivers(vendor_adrrs, driver_loca):
 
 
 def create_delivery(order_id, item):
+
     order = Order.objects.get(id=order_id)
 
+    #get vendor id from the order data
     temp = item[3]
     vendor_id = temp[-1]
 
@@ -99,24 +101,43 @@ def create_delivery(order_id, item):
         serializer_dict_data = {"driver": recommended_drivers[i]}
         drivers.insert(i, serializer_dict_data)
 
-    delivery = DeliverySerializer(data={"order": order_id, "drivers": drivers})
-
-    delivery.is_valid(raise_exception=True)
+    # delivery = DeliverySerializer(data={"order": order_id, "drivers": drivers})
+    delivery = Delivery(order = order)
     delivery.save()
+
+    #this logic creates a pool of request for drivers to pick from
+    for i in range(len(recommended_drivers)):
+        driver_match = DeliveryDriverMatchSerializer(
+                data = {
+                    "delivery":delivery.id,
+                    "driver":recommended_drivers[i]
+                }
+            )
+        driver_match.is_valid(raise_exception=True)
+        driver_match.save()
+    
 
     return Response({"message": "successfully created a delivery instance"})
 
 
-def update_order_status(delivery_id):
+def update_order_status(delivery_id,status):
     delivery = Delivery.objects.get(id=delivery_id)
 
     order_id = delivery.order.id
     order_instance = Order.objects.get(id=order_id)
-    order_instance.status = "in_transit"
-    # raise exception for objects that have been updated once
-    print(order_instance)
+    order_instance.status = status
     order_instance.save()
-    print("working")
+
+def update_driver_action(delivery,query_key,driver_action):
+    
+    delivery = Delivery.objects.get(id=delivery)
+
+    pending_deliveries = Delivery_driver_match.objects.filter(delivery=delivery,driver_action=query_key)
+    
+    for pending_delivery in pending_deliveries:
+        instance = Delivery_driver_match.objects.get(pk=pending_delivery.id)
+        instance.driver_action = driver_action
+        instance.save()
 
 
 def order_complete_status(delivery_id):

@@ -13,5 +13,5 @@ admin.site.register([
     Delivery_accept,
     Vendor,
     Delivery_location,
-    Delivery_drivers
+    Delivery_driver_match
 ])
