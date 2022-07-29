@@ -16,7 +16,7 @@ def get_restuarant_address(vendor_id):
 
 
 def find_drivers():
-    drivers_queryset = Driver.objects.filter(is_available=True)
+    drivers_queryset = Driver.objects.filter(is_available=True,is_busy=False)
     drivers_data = []
 
     for i in drivers_queryset:
@@ -148,3 +148,10 @@ def order_complete_status(delivery_id):
     print(order_instance)
     order_instance.save()
     print("order delivered")
+
+
+def update_driver_status(driver_id,state):
+    driver = Driver.objects.get(pk=driver_id)
+    
+    driver.is_busy = state
+    driver.save()

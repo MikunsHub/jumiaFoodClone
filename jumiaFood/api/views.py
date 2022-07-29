@@ -8,7 +8,7 @@ from rest_framework import status
 from .models import *
 from .serializers import *
 from .permissions import CustomerViewOnly
-from .utils import create_delivery, update_order_status, order_complete_status,update_driver_action
+from .utils import create_delivery, update_order_status, order_complete_status,update_driver_action,update_driver_status
 
 
 class CountryCreateListApiView(generics.ListCreateAPIView):
@@ -162,6 +162,50 @@ class DeliveryLocationCreateView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
 
+class DeliveryView(generics.ListCreateAPIView):
+    #admin level view
+    #allow param to do filtering
+    serializer_class = DeliveryDriverViewSerializer
+    queryset = Delivery.objects.filter(delivery_status="pending")
+    # test_query = Delivery_driver_match.objects.filter(delivery__delivery_status__contains="pending")
+    # Asset.objects.filter( project__name__contains="Foo" )
+
+    def get(self, request):
+        pending_deliveries = Delivery_driver_match.objects.filter(
+                delivery__delivery_status__contains="pending",driver_action="pending"
+            )
+        deliveries_set = set()
+        for i in pending_deliveries:
+            print(i.delivery.id)
+            deliveries_set.add((i.delivery.id))
+            
+        deliveries = list(deliveries_set)
+        print(Delivery.objects.get(pk=6))
+        
+        return Response(
+            {
+            "pending_deliveries": deliveries,
+            "driver_action": "pending"
+            }
+        )
+
+class DeliveryInTransitView(generics.ListCreateAPIView):
+    #admin level view
+    #allow param to do filtering
+    serializer_class = DeliveryDriverViewSerializer
+    queryset = Delivery.objects.filter(delivery_status="pending")
+    # test_query = Delivery_driver_match.objects.filter(delivery__delivery_status__contains="pending")
+    # Asset.objects.filter( project__name__contains="Foo" )
+
+    def get(self, request):
+        pending_deliveries = Delivery_driver_match.objects.filter(
+                delivery__delivery_status__contains="pending",driver_action="accept"
+            )
+        serializer = self.serializer_class(instance=pending_deliveries, many=True)
+        
+        return Response(serializer.data)
+
+
 class DeliveryRetrieveView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     lookup_field = 'driver'
@@ -183,8 +227,12 @@ class DeliveryAcceptView(generics.UpdateAPIView):
     queryset = Delivery_driver_match.objects.all()
     lookup_field = 'pk' #driver match id
     
-    def update(self, request, *args, **kwargs):
+    def update(self, request,pk, *args, **kwargs):
         data = request.data
+
+        if Delivery_driver_match.objects.get(pk=pk).driver.user.id != data["driver"]:
+            return Response({"message": "you are unauthorised to take this order"},status=status.HTTP_403_FORBIDDEN)
+        
         if Delivery_driver_match.objects.filter(delivery=data['delivery'],driver_action="accept").exists():
             return Response({"message": "order has been taken"},status=status.HTTP_403_FORBIDDEN)
         else:
@@ -201,12 +249,14 @@ class DeliveryAcceptView(generics.UpdateAPIView):
                 #changes order state as driver accepts to take order
                 update_order_status(data['delivery'],"in_transit")
                 update_driver_action(data['delivery'],"pending","rejected")
+                update_driver_status(data['driver'],True)
 
                 return Response({"message": "driver has accepted order"})
 
             else:
                 return Response({"message": "delivery status change failed"})
 
+#TODO: Implement changes on accept view on reject view
 class DeliveryRejectView(generics.UpdateAPIView):
     """
         Driver rejects order

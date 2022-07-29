@@ -77,6 +77,7 @@ class Driver(models.Model):
     latitude = models.FloatField(default=7.392130)
     longitude = models.FloatField(default=3.839928)
     is_available = models.BooleanField(default=False)
+    is_busy = models.BooleanField(default=False)
     # last_updated = models.DateField(auto_now=True)
 
     def __str__(self):

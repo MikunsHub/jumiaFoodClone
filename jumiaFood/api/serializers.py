@@ -139,6 +139,17 @@ class DeliveryDriverMatchSerializer(serializers.ModelSerializer):
             "delivery",
         ]
 
+class DeliveryDriverViewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Delivery_driver_match
+        fields = [
+            "id",
+            "driver",
+            "delivery",
+            "driver_action"
+        ]
+
 class DeliveryLocationSerializer(serializers.ModelSerializer):
 
     class Meta:
