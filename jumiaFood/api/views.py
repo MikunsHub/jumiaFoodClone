@@ -100,7 +100,7 @@ class OrderCreateListApiView(generics.ListCreateAPIView):
             # untraceable errors
             create_delivery(
                 order_id=serializer.data["id"],
-                item=list(serializer.data['item'][1].items())
+                item=list(serializer.data['item'][0].items())
             )
             return Response(data=serializer.data)
 
@@ -194,8 +194,6 @@ class DeliveryInTransitView(generics.ListCreateAPIView):
     #allow param to do filtering
     serializer_class = DeliveryDriverViewSerializer
     queryset = Delivery.objects.filter(delivery_status="pending")
-    # test_query = Delivery_driver_match.objects.filter(delivery__delivery_status__contains="pending")
-    # Asset.objects.filter( project__name__contains="Foo" )
 
     def get(self, request):
         pending_deliveries = Delivery_driver_match.objects.filter(
@@ -231,7 +229,7 @@ class DeliveryAcceptView(generics.UpdateAPIView):
         data = request.data
 
         if Delivery_driver_match.objects.get(pk=pk).driver.user.id != data["driver"]:
-            return Response({"message": "you are unauthorised to take this order"},status=status.HTTP_403_FORBIDDEN)
+            return Response({"message": "Invalid delivery receipt provided"},status=status.HTTP_403_FORBIDDEN)
         
         if Delivery_driver_match.objects.filter(delivery=data['delivery'],driver_action="accept").exists():
             return Response({"message": "order has been taken"},status=status.HTTP_403_FORBIDDEN)
@@ -256,7 +254,7 @@ class DeliveryAcceptView(generics.UpdateAPIView):
             else:
                 return Response({"message": "delivery status change failed"})
 
-#TODO: Implement changes on accept view on reject view
+
 class DeliveryRejectView(generics.UpdateAPIView):
     """
         Driver rejects order
@@ -265,7 +263,11 @@ class DeliveryRejectView(generics.UpdateAPIView):
     queryset = Delivery_driver_match.objects.all()
     lookup_field = 'pk' #driver match id
     
-    def update(self, request, *args, **kwargs):
+    def update(self, request,pk, *args, **kwargs):
+        data = request.data
+        
+        if Delivery_driver_match.objects.get(pk=pk).driver.user.id != data["driver"]:
+            return Response({"message": "Invalid delivery receipt provided"},status=status.HTTP_403_FORBIDDEN)
         
         instance = self.get_object()
         
@@ -281,41 +283,51 @@ class DeliveryRejectView(generics.UpdateAPIView):
             #reverts the order to the state at creation
             update_order_status(data['delivery'],"pending") 
             update_driver_action(data['delivery'],"rejected","pending")
+            update_driver_status(data['driver'],False)
 
             return Response({"message": "driver has rejected order"})
 
         else:
             return Response({"message": "delivery status change failed"})
 
-# another endpoint for the driver to show that they have completed
-# the order
 
-class OrderCompleteApiView(generics.UpdateAPIView):
-    permission_classes = (IsAuthenticated,)
 
-    queryset = Delivery.objects.all()
-    serializer_class = DeliverySerializer  # serializer for delivery
+class DeliveryCompleteApiView(generics.UpdateAPIView):
+    # permission_classes = (IsAuthenticated,)
+
+    queryset = Delivery_driver_match.objects.all()
+    serializer_class = DeliveryCompleteSerializer
     lookup_field = 'pk'
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request,pk, *args, **kwargs):
+        data = request.data
+
+        if Delivery_driver_match.objects.get(pk=pk).driver.user.id != data["driver"]:
+            return Response({"message": "Invalid delivery receipt provided"},status=status.HTTP_403_FORBIDDEN)
+
+        if Delivery_driver_match.objects.filter(delivery=data['delivery'],delivery_status="delivered").exists():
+            return Response({"message": "incorrect credentials"},status=status.HTTP_403_FORBIDDEN)
+
         instance = self.get_object()
-        print(instance)
+        
         serializer = self.get_serializer(
             instance, data=request.data, partial=True)
 
         if serializer.is_valid():
+
             serializer.save()
             data = serializer.data
-            print(data)
-            order_complete_status(data['id'])
+            
+            order_complete_status(data['delivery'])
+            update_driver_status(data['driver'],False)
             return Response({"message": "delivery has been updated"})
-
         else:
             return Response({"message": "delivery did not update"})
 
-# update driver's location
+
 
 class DriverLocationApiView(generics.UpdateAPIView):
+    # update driver's location
 
     queryset = Driver.objects.all()
     serializer_class = DriverLocationSerializer
@@ -357,3 +369,17 @@ class DriverAvailabilityApiView(generics.UpdateAPIView):
 
         else:
             return Response({"message": "Driver availability did not update"})
+
+class DriverCompletedDeliveryHistoryView(generics.RetrieveAPIView):
+
+    serializer_class = DriverCompleteDeliverySerializer
+    lookup_field = 'driver'
+
+    def get(self,request,driver):
+        pending_deliveries = Delivery_driver_match.objects.filter(
+                driver=driver,delivery_status="delivered"
+            )
+        serializer = self.serializer_class(instance=pending_deliveries, many=True)
+        
+        return Response(serializer.data)
+

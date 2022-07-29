@@ -149,6 +149,8 @@ class Delivery_driver_match(models.Model):
             choices=deliverDriverActionChoices,
             default=deliverDriverActionChoices[0][0]
         )
+    delivery_status = models.CharField(
+        max_length=30, choices=deliveryOrderChoices, default=deliveryOrderChoices[0][0])
     time_added = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 

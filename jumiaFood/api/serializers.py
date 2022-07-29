@@ -97,6 +97,16 @@ class DeliveryAcceptSerializer(serializers.ModelSerializer):
             "driver_action",
         ]
 
+class DeliveryCompleteSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Delivery_driver_match
+        fields = [
+            "delivery",
+            "driver",
+            "delivery_status",
+        ]
+
 
 class DriverLocationSerializer(serializers.ModelSerializer):
 
@@ -116,6 +126,15 @@ class DriverStatusSerializer(serializers.ModelSerializer):
         fields = [
             "user",
             "is_available",
+        ]
+
+class DriverCompleteDeliverySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Delivery_driver_match
+        fields = [
+            "driver",
+            "delivery",
         ]
 
 

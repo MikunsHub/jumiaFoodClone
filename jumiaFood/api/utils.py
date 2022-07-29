@@ -144,8 +144,11 @@ def order_complete_status(delivery_id):
 
     order_id = delivery.order.id
     order_instance = Order.objects.get(id=order_id)
+
+    delivery.delivery_status = "delivered"
     order_instance.status = "delivered"
-    print(order_instance)
+    
+    delivery.save()
     order_instance.save()
     print("order delivered")
 
