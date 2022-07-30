@@ -161,6 +161,19 @@ class DeliveryLocationCreateView(generics.ListCreateAPIView):
         data = serializer.data
         return Response(serializer.data)
 
+#TODO: fix this
+class DeliveryRecentLocationView(generics.RetrieveAPIView):
+    serializer_class = DeliveryLocationSerializer
+    # queryset = Delivery_location.objects.all()
+    lookup_field = 'customer'
+
+    def get(self,customer, request):
+        location = Delivery_location.objects.filter(customer=customer)
+        print(location)
+        serializer = self.serializer_class(instance=location, many=True)
+        return Response(data=serializer.data)
+
+
 
 class DeliveryView(generics.ListCreateAPIView):
     #admin level view
@@ -214,6 +227,7 @@ class DeliveryRetrieveView(generics.RetrieveAPIView):
     def get(self, request,driver):
         delivery = Delivery_driver_match.objects.filter(driver=driver,driver_action="pending")
         serializer = self.serializer_class(instance=delivery, many=True)
+        print(serializer.data)
         return Response(data=serializer.data)
 
 
@@ -382,4 +396,3 @@ class DriverCompletedDeliveryHistoryView(generics.RetrieveAPIView):
         serializer = self.serializer_class(instance=pending_deliveries, many=True)
         
         return Response(serializer.data)
-

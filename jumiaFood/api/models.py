@@ -49,24 +49,14 @@ class Menu(models.Model):
     def __str__(self):
         return f"{self.meal_name}"
 
+class Customer(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True)
+    dob = models.DateField()
+    # location_ordered
 
-class Order(models.Model):
-    status = models.CharField(
-        max_length=30, choices=status_choices, default=status_choices[0][0])
-    customer = models.ForeignKey(User, on_delete=models.CASCADE)
-    items = models.ManyToManyField(Menu, through='OrderItems')
-    total_amount = models.FloatField(default=0.0)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-
-class OrderItems(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    menu = models.ForeignKey(Menu, on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=1)
-
-
-# class Payment(models.Model):
-#     pass
+    def __str__(self):
+        return f"{self.user.email}"
 
 class Driver(models.Model):
     user = models.OneToOneField(
@@ -83,16 +73,23 @@ class Driver(models.Model):
     def __str__(self):
         return f"Email:{self.user.email} Id:{self.pk}"
 
+class Order(models.Model):
+    status = models.CharField(
+        max_length=30, choices=status_choices, default=status_choices[0][0])
+    customer = models.ForeignKey(User, on_delete=models.CASCADE) #make this customer next time
+    items = models.ManyToManyField(Menu, through='OrderItems')
+    total_amount = models.FloatField(default=0.0)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
-class Customer(models.Model):
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, primary_key=True)
-    dob = models.DateField()
-    # location_ordered
 
-    def __str__(self):
-        return f"{self.user.email}"
+class OrderItems(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    menu = models.ForeignKey(Menu, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
 
+
+# class Payment(models.Model):
+#     pass
 
 deliveryOrderChoices = (
     ("pending", "pending"),
@@ -110,28 +107,8 @@ class Delivery(models.Model):
         return f"Order:{self.order.id} Deliver: {self.pk}" 
 
 
-driverOrderChoices = (
-    ("pending", "pending"),
-    ("accepted", "accepted"),
-    ("cancelled", "cancelled")
-)
-
-
-class Delivery_accept(models.Model):
-    delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE)
-    driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
-    driver_status = models.CharField(
-            max_length=30, 
-            choices=driverOrderChoices,
-            default=driverOrderChoices[0][0]
-        )
-
-    def __str__(self):
-        return f"{self.driver.user.email}"
-
-
 class Delivery_location(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.CharField(max_length=200)
     date_added = models.DateField(auto_now_add=True)
 

@@ -10,7 +10,6 @@ admin.site.register([
     Driver,
     Customer,
     Delivery,
-    Delivery_accept,
     Vendor,
     Delivery_location,
     Delivery_driver_match

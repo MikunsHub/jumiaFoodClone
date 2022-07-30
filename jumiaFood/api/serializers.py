@@ -23,7 +23,6 @@ class MenuSerializer(serializers.ModelSerializer):
             "price"
         ]
 
-
 class OrderItemsRetrieveSerializer(serializers.ModelSerializer):
 
     Price = serializers.SerializerMethodField('get_price')
@@ -49,6 +48,7 @@ class OrderSerializer(serializers.ModelSerializer):
         many=True,
         source='orderitems_set',
     )
+
 
     class Meta:
         model = Order
@@ -96,6 +96,7 @@ class DeliveryAcceptSerializer(serializers.ModelSerializer):
             "driver",
             "driver_action",
         ]
+    
 
 class DeliveryCompleteSerializer(serializers.ModelSerializer):
     
@@ -150,13 +151,27 @@ class DeliverySerializer(serializers.ModelSerializer):
 
 class DeliveryDriverMatchSerializer(serializers.ModelSerializer):
 
+    email = serializers.SerializerMethodField('get_customer_email')
+    phone_number = serializers.SerializerMethodField('get_customer_contact')
+
     class Meta:
         model = Delivery_driver_match
         fields = [
             "id",
             "driver",
             "delivery",
+            "phone_number",
+            "email",
         ]
+    def get_customer_email(self, obj):
+        customer_email = obj.delivery.order.customer.email
+        
+        return customer_email
+    
+    def get_customer_contact(self, obj):
+        customer_contact = str(obj.delivery.order.customer.phone_number)
+        
+        return customer_contact
 
 class DeliveryDriverViewSerializer(serializers.ModelSerializer):
 
@@ -169,6 +184,8 @@ class DeliveryDriverViewSerializer(serializers.ModelSerializer):
             "driver_action"
         ]
 
+#TODO: I think the delivery location should be added to the delivery table
+
 class DeliveryLocationSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -177,3 +194,4 @@ class DeliveryLocationSerializer(serializers.ModelSerializer):
             "customer",
             "address",
         ]
+
