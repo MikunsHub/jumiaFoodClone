@@ -82,6 +82,7 @@ class Order(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
+
 class OrderItems(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     menu = models.ForeignKey(Menu, on_delete=models.CASCADE)
@@ -99,9 +100,13 @@ deliveryOrderChoices = (
 
 class Delivery(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    delivery_time = models.DateTimeField(auto_now_add=True)
+    delivery_creation_time = models.DateTimeField(auto_now_add=True)
     delivery_status = models.CharField(
-        max_length=30, choices=deliveryOrderChoices, default=deliveryOrderChoices[0][0])
+            max_length=30, choices=deliveryOrderChoices,
+            default=deliveryOrderChoices[0][0]
+        )
+    delivered_at = models.DateTimeField(auto_now=True)
+    
     
     def __str__(self):
         return f"Order:{self.order.id} Deliver: {self.pk}" 

@@ -175,8 +175,11 @@ class DeliveryDriverMatchSerializer(serializers.ModelSerializer):
             "delivery",
             "phone_number",
             "email",
-            "address"
+            "address",
+            "time_added",
+            "last_modified"
         ]
+        
     def get_customer_email(self, obj):
         customer_email = obj.delivery.order.customer.email
         
@@ -204,7 +207,9 @@ class DeliveryDriverViewSerializer(serializers.ModelSerializer):
             "id",
             "driver",
             "delivery",
-            "driver_action"
+            "driver_action",
+            "time_added",
+            "last_modified"
         ]
 
 

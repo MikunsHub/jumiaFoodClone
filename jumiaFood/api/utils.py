@@ -3,9 +3,15 @@ from rest_framework.response import Response
 from .models import Delivery, Order, Vendor, Driver,Delivery_driver_match
 from .serializers import DeliveryDriverMatchSerializer
 import googlemaps
+from dotenv import load_dotenv
+import os
 
+def configure():
+    load_dotenv()
 
-gmaps = googlemaps.Client(key='AIzaSyB7HD_pMGWXkDZDk8KxFdGfFglyDcQ3Fyk')
+configure()
+
+gmaps = googlemaps.Client(key=f'{os.getenv("gmaps_api_key")}')
 
 
 def get_restuarant_address(vendor_id):
