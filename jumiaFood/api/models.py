@@ -108,6 +108,7 @@ class Delivery(models.Model):
 
 
 class Delivery_location(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
     address = models.CharField(max_length=200)
     date_added = models.DateField(auto_now_add=True)

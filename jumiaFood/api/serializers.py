@@ -149,10 +149,23 @@ class DeliverySerializer(serializers.ModelSerializer):
             "delivery_status",
         ]
 
+#TODO: I think the delivery location should be added to the delivery table
+
+class DeliveryLocationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Delivery_location
+        fields = [
+            "order",
+            "customer",
+            "address",
+        ]
+from .models import *
 class DeliveryDriverMatchSerializer(serializers.ModelSerializer):
 
     email = serializers.SerializerMethodField('get_customer_email')
     phone_number = serializers.SerializerMethodField('get_customer_contact')
+    address = serializers.SerializerMethodField('get_customer_address')
 
     class Meta:
         model = Delivery_driver_match
@@ -162,6 +175,7 @@ class DeliveryDriverMatchSerializer(serializers.ModelSerializer):
             "delivery",
             "phone_number",
             "email",
+            "address"
         ]
     def get_customer_email(self, obj):
         customer_email = obj.delivery.order.customer.email
@@ -172,6 +186,15 @@ class DeliveryDriverMatchSerializer(serializers.ModelSerializer):
         customer_contact = str(obj.delivery.order.customer.phone_number)
         
         return customer_contact
+    
+    def get_customer_address(self, obj):
+        
+        orders_queryset = obj.delivery.order
+        try:
+            delivery_address = Delivery_location.objects.get(order=orders_queryset)
+        except:
+            return None
+        return  delivery_address.address
 
 class DeliveryDriverViewSerializer(serializers.ModelSerializer):
 
@@ -184,14 +207,5 @@ class DeliveryDriverViewSerializer(serializers.ModelSerializer):
             "driver_action"
         ]
 
-#TODO: I think the delivery location should be added to the delivery table
 
-class DeliveryLocationSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Delivery_location
-        fields = [
-            "customer",
-            "address",
-        ]
 

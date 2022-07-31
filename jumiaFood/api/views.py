@@ -153,6 +153,14 @@ class DeliveryLocationCreateView(generics.ListCreateAPIView):
         return Response(data=serializer.data)
 
     def post(self, request):
+        data = request.data
+        print(data)
+        if Delivery_location.objects.get(order=data['order']):
+            return Response({"message": "address for order already exists"},status=status.HTTP_403_FORBIDDEN)
+        
+        if Order.objects.get(pk=data['order']).customer != data["customer"]:
+            return Response({"message": "Invalid customer"},status=status.HTTP_403_FORBIDDEN)
+
         serializer = DeliveryLocationSerializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
@@ -162,19 +170,6 @@ class DeliveryLocationCreateView(generics.ListCreateAPIView):
         return Response(serializer.data)
 
 #TODO: fix this
-class DeliveryRecentLocationView(generics.RetrieveAPIView):
-    serializer_class = DeliveryLocationSerializer
-    # queryset = Delivery_location.objects.all()
-    lookup_field = 'customer'
-
-    def get(self,customer, request):
-        location = Delivery_location.objects.filter(customer=customer)
-        print(location)
-        serializer = self.serializer_class(instance=location, many=True)
-        return Response(data=serializer.data)
-
-
-
 class DeliveryView(generics.ListCreateAPIView):
     #admin level view
     #allow param to do filtering
