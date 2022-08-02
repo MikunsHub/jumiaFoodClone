@@ -17,6 +17,8 @@ from .views import (
     DriverAvailabilityApiView,
     DeliveryLocationCreateView,
     DriverCompletedDeliveryHistoryView,
+    PaymentApiView,
+    VerifyPaymentApiView
 )
 
 urlpatterns = [
@@ -27,6 +29,8 @@ urlpatterns = [
     path('<int:pk>/order/', OrderUpdateApiView.as_view()),
     path('order/<int:pk>/', OrderRetrieveApiView.as_view()),
     path('order/<int:pk>/delete/', OrderDeleteApiView.as_view()),
+    path('payment/<int:order>/', PaymentApiView.as_view()),
+    path('payment/<int:order>/verify', VerifyPaymentApiView.as_view()),
     path('delivery', DeliveryView.as_view()),
     path('<int:driver>/delivery', DeliveryRetrieveView.as_view()),
     path('delivery/in_transit', DeliveryInTransitView.as_view()),

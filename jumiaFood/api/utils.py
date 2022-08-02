@@ -84,13 +84,13 @@ def get_suitable_drivers(vendor_adrrs, driver_loca):
     return data[:3]
 
 
-def create_delivery(order_id, item):
+def create_delivery(order_id):
 
     order = Order.objects.get(id=order_id)
 
     #get vendor id from the order data
-    temp = item[3]
-    vendor_id = temp[-1]
+    
+    vendor_id = order.vendor
 
     # logic to find the best drivers will be here
     address = get_restuarant_address(vendor_id)
@@ -105,11 +105,19 @@ def create_delivery(order_id, item):
         serializer_dict_data = {"driver": recommended_drivers[i]}
         drivers.insert(i, serializer_dict_data)
 
+    #payment logic happens here
+    #blocks off delivery creation and driver matching
+    # if payment fails return error
+    """
+    payment_instance = Payment(order)
+    """
+
     # delivery = DeliverySerializer(data={"order": order_id, "drivers": drivers})
     delivery = Delivery(order = order)
     delivery.save()
 
     #this logic creates a pool of request for drivers to pick from
+    # drivers are matched here
     for i in range(len(recommended_drivers)):
         driver_match = DeliveryDriverMatchSerializer(
                 data = {
