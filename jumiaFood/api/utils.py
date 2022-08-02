@@ -84,13 +84,13 @@ def get_suitable_drivers(vendor_adrrs, driver_loca):
     return data[:3]
 
 
-def create_delivery(order_id, item):
+def create_delivery(order_id):
 
     order = Order.objects.get(id=order_id)
 
     #get vendor id from the order data
-    temp = item[3]
-    vendor_id = temp[-1]
+    
+    vendor_id = order.vendor
 
     # logic to find the best drivers will be here
     address = get_restuarant_address(vendor_id)

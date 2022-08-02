@@ -12,6 +12,13 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+def configure():
+    load_dotenv()
+
+configure()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,6 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-dz)l)tjjgoho-as&tg2w4ormy52+264$-t9dja^tainp*s^3)6'
+PAYSTACK_SECRET_KEY = f'{os.getenv("PAYSTACK_SECRET_KEY")}'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

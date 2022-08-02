@@ -77,6 +77,7 @@ class Order(models.Model):
     status = models.CharField(
         max_length=30, choices=status_choices, default=status_choices[0][0])
     customer = models.ForeignKey(User, on_delete=models.CASCADE) #make this customer next time
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE,blank=True)
     items = models.ManyToManyField(Menu, through='OrderItems')
     total_amount = models.FloatField(default=0.0)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -88,15 +89,30 @@ class OrderItems(models.Model):
     menu = models.ForeignKey(Menu, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
 
+payment_status_choices = (
+    ("processing", "processing"),
+    ("successful", "successful"),
+    ("failed", "failed"),
+)
 
-# class Payment(models.Model):
-#     pass
+class Payment(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    ref_id = models.CharField(max_length=30,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    payment_status = models.CharField(
+        max_length=30,
+        choices=payment_status_choices,
+        default=payment_status_choices[0][0]
+    )
+
+    def __str__(self):
+        return f"Email:{self.order.customer.email} OrderId:{self.order.id}"
 
 deliveryOrderChoices = (
     ("pending", "pending"),
     ("delivered", "delivered")
 )
-
 
 class Delivery(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

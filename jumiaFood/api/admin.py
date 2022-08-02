@@ -6,6 +6,7 @@ admin.site.register([
     Business_Type,
     Order,
     OrderItems,
+    Payment,
     Menu,
     Driver,
     Customer,

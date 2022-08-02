@@ -1,9 +1,12 @@
-from django.shortcuts import render
+from django.conf import settings
 
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+
+import requests
+import json
 
 from .models import *
 from .serializers import *
@@ -95,13 +98,10 @@ class OrderCreateListApiView(generics.ListCreateAPIView):
             serializer.save(customer=user, total_amount=total_amount)
             print(serializer.data)
 
-            #alert drivers that they have a delivery to make
-            #you can put this delivery in a try catch to prevent,
-            # untraceable errors
-            create_delivery(
-                order_id=serializer.data["id"],
-                item=list(serializer.data['item'][0].items())
-            )
+            order = Order.objects.get(id=serializer.data["id"])
+            payment = Payment(order=order)
+            payment.save()
+            
             return Response(data=serializer.data)
 
         return Response(data=serializer.errors)
@@ -142,7 +142,104 @@ class OrderDeleteApiView(generics.DestroyAPIView):
     serializer_class = OrderSerializer
     lookup_field = 'pk'
 
+class PaymentApiView(generics.UpdateAPIView):
 
+    # queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    lookup_field = 'order'
+
+    def get_queryset(self) :
+        data = self.request.data
+        order = data["order"]
+        return Payment.objects.filter(order=order)
+
+    def update(self, request,order, *args, **kwargs):
+
+        data = request.data
+        instance = self.get_object()
+
+        order = Order.objects.get(id=order)
+        print(order.total_amount)
+        amount = order.total_amount * 100
+
+        payment_params = {
+            "email": order.customer.email,
+            "amount": amount #check the currency 
+        }
+        url = 'https://api.paystack.co/transaction/initialize'
+
+        headers = {
+                "authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"
+            }
+
+        r = requests.post(url, headers=headers, data=payment_params)
+        response = r.json()
+        print(response)
+        ref_id = response['data']['reference']
+        print("ref_id",ref_id)
+        data = request.data
+        data["ref_id"] = ref_id
+        print(data)
+
+        serializer = self.get_serializer(
+            instance, data=data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            data = serializer.data
+            data["authorization_url"] = response["data"]["authorization_url"]
+            print(data)
+            return Response(data)
+
+        else:
+            return Response({"message": "Payment failed"})
+
+class VerifyPaymentApiView(generics.RetrieveAPIView):
+    serializer_class = PaymentVerifySerializer
+    lookup_field = 'order'
+
+    def get(self, request,order):
+        payment = Payment.objects.filter(order=order)
+        payment_instance = None
+
+        for i in payment:
+            payment_instance = Payment.objects.get(order=i.order)
+
+        ref_id = payment_instance.ref_id
+
+        url = f"https://api.paystack.co/transaction/verify/{ref_id}"
+        headers = {
+                "authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"
+            }
+        r = requests.get(url, headers=headers)
+        response = r.json()
+
+        if response['data']['status'] == 'success':
+
+            status = response['data']['status']
+            amount = response['data']['amount']
+
+            payment_instance.payment_status = "successful"
+            payment_instance.save()
+
+            serializer = self.serializer_class(instance=payment, many=True)
+
+            #alert drivers that they have a delivery to make
+            #you can put this delivery in a try catch to prevent,
+            # untraceable errors
+            print(serializer.data)
+            create_delivery(order_id = serializer.data[0]["order"])
+
+            return Response(data=serializer.data)
+
+        payment_instance.payment_status = "failed"
+        payment_instance.save()
+        return Response({
+            "message": "payment failed"
+            # "status_code"
+        })
+    
+    
 class DeliveryLocationCreateView(generics.ListCreateAPIView):
     serializer_class = DeliveryLocationSerializer
     queryset = Delivery_location.objects.all()

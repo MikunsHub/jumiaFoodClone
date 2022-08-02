@@ -56,6 +56,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "id",
             "status",
             "item",
+            "vendor",
             "total_amount"
         )
 
@@ -86,6 +87,25 @@ class OrderRetrieveSerializer(serializers.ModelSerializer):
         ]
         depth = 1
 
+class PaymentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payment
+        fields = [
+            "order",
+            "ref_id"
+            
+        ]
+
+class PaymentVerifySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payment
+        fields = [
+            "order",
+            "ref_id",
+            "payment_status"
+        ]
 
 class DeliveryAcceptSerializer(serializers.ModelSerializer):
     
