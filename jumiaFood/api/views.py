@@ -169,7 +169,7 @@ class DeliveryLocationCreateView(generics.ListCreateAPIView):
         data = serializer.data
         return Response(serializer.data)
 
-#TODO: fix this
+#TODO: fix this <-- dashboard endpoint
 class DeliveryView(generics.ListCreateAPIView):
     #admin level view
     #allow param to do filtering
