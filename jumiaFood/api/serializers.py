@@ -1,6 +1,16 @@
 from rest_framework import serializers
-from .models import *
-
+from .models import (
+    Country,
+    Business_Type,
+    Menu,
+    OrderItems,
+    Order,
+    Payment,
+    Delivery_driver_match,
+    Delivery,
+    Delivery_location,
+    Driver
+    )
 
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -180,7 +190,7 @@ class DeliveryLocationSerializer(serializers.ModelSerializer):
             "customer",
             "address",
         ]
-from .models import *
+
 class DeliveryDriverMatchSerializer(serializers.ModelSerializer):
 
     email = serializers.SerializerMethodField('get_customer_email')
@@ -231,6 +241,3 @@ class DeliveryDriverViewSerializer(serializers.ModelSerializer):
             "time_added",
             "last_modified"
         ]
-
-
-

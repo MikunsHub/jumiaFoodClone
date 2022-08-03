@@ -21,9 +21,10 @@ from .views import (
     VerifyPaymentApiView
 )
 
+
 urlpatterns = [
-    path('countries/', CountryCreateListApiView.as_view()),
-    path('business_type/', Business_TypeCreateListApiView.as_view()),
+    path('countries/', CountryCreateListApiView.as_view(),name="country"),
+    path('business_type/', Business_TypeCreateListApiView.as_view(),name="business_type"),
     path('menu/', MenuCreateListApiView.as_view()),
     path('order/', OrderCreateListApiView.as_view()),
     path('<int:pk>/order/', OrderUpdateApiView.as_view()),
