@@ -1,5 +1,6 @@
 from .test_setup import TestSetUp
 
+#test views
 class TestViews(TestSetUp):
 
     def test_country_cannot_be_added(self):
@@ -12,4 +13,3 @@ class TestViews(TestSetUp):
   
         self.assertEqual(res.data["country_name"],self.country_data["country_name"])
         self.assertEqual(res.status_code,200)
-        
