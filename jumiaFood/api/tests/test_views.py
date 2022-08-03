@@ -12,3 +12,4 @@ class TestViews(TestSetUp):
   
         self.assertEqual(res.data["country_name"],self.country_data["country_name"])
         self.assertEqual(res.status_code,200)
+        
