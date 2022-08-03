@@ -6,12 +6,43 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 import requests
-import json
+from .models import (
+    Country,
+    Business_Type,
+    Menu,
+    Order,
+    Payment,
+    Delivery_driver_match,
+    Delivery,
+    Delivery_location,
+    Driver
+    )
 
-from .models import *
-from .serializers import *
+from .serializers import (
+    CountrySerializer,
+    Business_TypeSerializer,
+    MenuSerializer,
+    OrderSerializer,
+    OrderRetrieveSerializer,
+    PaymentSerializer,
+    PaymentVerifySerializer,
+    DeliveryAcceptSerializer,
+    DeliveryCompleteSerializer,
+    DriverLocationSerializer,
+    DriverStatusSerializer,
+    DriverCompleteDeliverySerializer,
+    DeliveryLocationSerializer,
+    DeliveryDriverMatchSerializer,
+    DeliveryDriverViewSerializer
+)
 from .permissions import CustomerViewOnly
-from .utils import create_delivery, update_order_status, order_complete_status,update_driver_action,update_driver_status
+from .utils import (
+    create_delivery,
+    update_order_status,
+    order_complete_status,
+    update_driver_action,
+    update_driver_status
+    )
 
 
 class CountryCreateListApiView(generics.ListCreateAPIView):
@@ -101,7 +132,6 @@ class OrderCreateListApiView(generics.ListCreateAPIView):
             order = Order.objects.get(id=serializer.data["id"])
             payment = Payment(order=order)
             payment.save()
-            
             return Response(data=serializer.data)
 
         return Response(data=serializer.errors)
@@ -143,6 +173,7 @@ class OrderDeleteApiView(generics.DestroyAPIView):
     lookup_field = 'pk'
 
 class PaymentApiView(generics.UpdateAPIView):
+
 
     # queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
@@ -483,8 +514,8 @@ class DriverCompletedDeliveryHistoryView(generics.RetrieveAPIView):
 
     def get(self,request,driver):
         pending_deliveries = Delivery_driver_match.objects.filter(
-                driver=driver,delivery_status="delivered"
+                driver=driver,
+                delivery_status="delivered"
             )
         serializer = self.serializer_class(instance=pending_deliveries, many=True)
-        
         return Response(serializer.data)
