@@ -1,6 +1,6 @@
 from .test_setup import TestSetUp
 
-#test views
+
 class TestViews(TestSetUp):
 
     def test_country_cannot_be_added(self):
