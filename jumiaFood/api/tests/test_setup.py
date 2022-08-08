@@ -4,7 +4,7 @@ from ..models import (
     Country,
     Business_Type
 )
-# from user.models import Userr
+# from user.models import User
 
 
 class TestSetUp(APITestCase):
