@@ -34,6 +34,7 @@ jobs:
         env:
           GMAPS_API_KEY: ${{ secrets.GMAPS_API_KEY }}
           PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
           cd jumiaFood
           python3 manage.py test
