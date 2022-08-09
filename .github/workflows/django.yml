@@ -30,3 +30,7 @@ jobs:
       - name: Check dir
         run: |
           dir 
+      - name: enter jumiaFood and test
+        run: |
+          cd jumiaFood
+          python3 manage.py test
