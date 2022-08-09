@@ -258,7 +258,7 @@ class VerifyPaymentApiView(generics.RetrieveAPIView):
             #alert drivers that they have a delivery to make
             #you can put this delivery in a try catch to prevent,
             # untraceable errors
-            print(serializer.data)
+            # print(serializer.data)
             create_delivery(order_id = serializer.data[0]["order"])
 
             return Response(data=serializer.data)
@@ -350,7 +350,6 @@ class DeliveryRetrieveView(generics.RetrieveAPIView):
     def get(self, request,driver):
         delivery = Delivery_driver_match.objects.filter(driver=driver,driver_action="pending")
         serializer = self.serializer_class(instance=delivery, many=True)
-        print(serializer.data)
         return Response(data=serializer.data)
 
 

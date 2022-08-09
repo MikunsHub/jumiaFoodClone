@@ -8,16 +8,11 @@ from .models import(
     )
 from .serializers import DeliveryDriverMatchSerializer
 import googlemaps
-from dotenv import load_dotenv
-import os
+from decouple import config
 
 
-def configure():
-    load_dotenv()
-
-configure()
-
-gmaps = googlemaps.Client(key=f'{os.getenv("gmaps_api_key")}')
+key = config('GMAPS_API_KEY')
+gmaps = googlemaps.Client(key=key)
 
 
 def get_restuarant_address(vendor_id):
@@ -61,8 +56,6 @@ def get_suitable_drivers(vendor_adrrs, driver_loca):
         driver_ids.append(driver_loca[i]["id"])
         driver_coordinates.append(driver_loca[i]["coordinates"])
 
-    print(driver_coordinates)
-    print(driver_ids)
 
     geocode_result = gmaps.distance_matrix(
         origins=[vendor_adrrs],
@@ -73,17 +66,14 @@ def get_suitable_drivers(vendor_adrrs, driver_loca):
     for i in geocode_result["rows"][0]["elements"]:
         distance.append(float(i["distance"]["text"].split()[0]))
 
-    print(distance)
-
     data_dict = {}
     for i in range(len(driver_ids)):
         data_dict[driver_ids[i]] = distance[i]
 
-    print(data_dict)
 
     sorted_data_dict = {k: v for k, v in sorted(
         data_dict.items(), key=lambda item: item[1])}
-    print(sorted_data_dict)
+    
 
     data = list(sorted_data_dict.keys())
 
