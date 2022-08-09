@@ -27,6 +27,8 @@ requests = "==2.28.1"
 sqlparse = "==0.4.2"
 tzdata = "==2022.1"
 urllib3 = "==1.26.11"
+python-decouple = "*"
+django-extensions = "*"
 
 [dev-packages]
 
