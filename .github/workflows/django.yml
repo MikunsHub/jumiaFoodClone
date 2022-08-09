@@ -29,4 +29,4 @@ jobs:
           ls
       - name: Check dir
         run: |
-          dir /s
+          dir 
