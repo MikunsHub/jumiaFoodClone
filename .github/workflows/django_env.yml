@@ -50,4 +50,5 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
         run: |
+          cd jumiaFood
           pipenv run python manage.py test --noinput
