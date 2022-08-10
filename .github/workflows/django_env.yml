@@ -1,0 +1,53 @@
+name: CI
+
+on: [push]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.10.0]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Pipenv
+        uses: dschep/install-pipenv-action@v1
+
+      - name: Cache Pipenv Virtualenv
+        uses: actions/cache@v1
+        id: pipenv-cache
+        with:
+          path: ~/.pipenv
+          key: ${{ runner.os }}-pipenv-v2-${{ hashFiles('**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-v2-
+      - name: Install Dependencies
+        env:
+          PIPENV_NOSPIN: 'true'
+          WORKON_HOME: ~/.pipenv/virtualenvs
+          PIPENV_CACHE_DIR: ~/.pipenv/pipcache
+        run: pipenv install --dev
+        if: steps.pipenv-cache.outputs.cache-hit != 'true'
+
+      - name: Run tests
+        env:
+          PIPENV_NOSPIN: 'true'
+          WORKON_HOME: ~/.pipenv/virtualenvs
+          DJANGO_SETTINGS_MODULE: 'backend.settings'
+          PYTHONPATH: '.'
+          DEBUG: False
+          ENV: 'development'
+          GMAPS_API_KEY: ${{ secrets.GMAPS_API_KEY }}
+          PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+
+        run: |
+          pipenv run python manage.py test --noinput
