@@ -41,8 +41,6 @@ jobs:
         env:
           PIPENV_NOSPIN: 'true'
           WORKON_HOME: ~/.pipenv/virtualenvs
-          DJANGO_SETTINGS_MODULE: 'backend.settings'
-          PYTHONPATH: '.'
           DEBUG: False
           ENV: 'development'
           GMAPS_API_KEY: ${{ secrets.GMAPS_API_KEY }}
