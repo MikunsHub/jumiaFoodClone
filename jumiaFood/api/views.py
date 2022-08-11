@@ -173,9 +173,6 @@ class OrderDeleteApiView(generics.DestroyAPIView):
     lookup_field = 'pk'
 
 class PaymentApiView(generics.UpdateAPIView):
-
-
-    # queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
     lookup_field = 'order'
 
@@ -187,10 +184,22 @@ class PaymentApiView(generics.UpdateAPIView):
     def update(self, request,order, *args, **kwargs):
 
         data = request.data
+        #checker for request data
+        payment = Payment.objects.get(order=order)
+
+        print(data)
+        print(order)
+        if data["order"] != order:
+            return Response({"message":"Bad request"})
+
+        if payment.payment_status == 'successful' or payment.payment_status == 'failed':
+            return Response({"message": "payment cannot be initialised with this credentials"})
+        
         instance = self.get_object()
 
         order = Order.objects.get(id=order)
         print(order.total_amount)
+        # amount is times 100 because paystack takes the values in kobo
         amount = order.total_amount * 100
 
         payment_params = {
@@ -237,6 +246,11 @@ class VerifyPaymentApiView(generics.RetrieveAPIView):
             payment_instance = Payment.objects.get(order=i.order)
 
         ref_id = payment_instance.ref_id
+
+        
+        if payment_instance.payment_status == "successful":
+            return Response({"message": "Payment is successful"})
+        
 
         url = f"https://api.paystack.co/transaction/verify/{ref_id}"
         headers = {
